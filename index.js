@@ -5,7 +5,6 @@ const fs = require("fs");
 const rawData = fs.readFileSync("datos.json", "utf8");
 const cachedMovies = JSON.parse(rawData);
 
-// Le decimos a Stremio que vamos a enviar las películas de a 100
 const PAGE_SIZE = 100;
 
 const manifest = {
@@ -13,14 +12,15 @@ const manifest = {
     version: "1.0.0",
     name: "Criterion Full (RD Ready)",
     description: "Colección Criterion completa con metadatos reales.",
-    resources: ["catalog"],
+    // AHORA LE DECIMOS A STREMIO QUE TENEMOS CATÁLOGO Y METADATOS
+    resources: ["catalog", "meta"], 
+    idPrefixes: ["tmdb:"], // Le avisamos que usamos IDs de TMDB
     types: ["movie"],
     catalogs: [
         { 
             type: "movie", 
             id: "criterion_cat", 
             name: "Criterion Collection",
-            // ESTO ES LA MAGIA: Le activamos la búsqueda y el "scroll" (skip)
             extra: [
                 { name: "search" },
                 { name: "skip" }
@@ -31,20 +31,31 @@ const manifest = {
 
 const builder = new addonBuilder(manifest);
 
+// 1. MANEJADOR DEL CATÁLOGO (La Vidriera)
 builder.defineCatalogHandler(async ({ extra }) => {
     let results = cachedMovies;
 
-    // 1. Si el usuario escribe en el buscador de Stremio
     if (extra?.search) {
         const query = extra.search.toLowerCase();
         results = results.filter((m) => m.name.toLowerCase().includes(query));
     }
 
-    // 2. Si el usuario hace scroll hacia abajo (Paginación)
     const skip = parseInt(extra?.skip || "0", 10);
     results = results.slice(skip, skip + PAGE_SIZE);
 
     return { metas: results };
+});
+
+// 2. NUEVO: MANEJADOR DE METADATOS (La página de la película)
+builder.defineMetaHandler(async ({ type, id }) => {
+    // Buscamos la película exacta en nuestra memoria por su ID
+    const movie = cachedMovies.find(m => m.id === id);
+    
+    if (movie) {
+        return { meta: movie };
+    } else {
+        return { meta: {} };
+    }
 });
 
 const PORT = process.env.PORT || 7005;
