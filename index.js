@@ -17,10 +17,12 @@ const manifest = {
 
 const builder = new addonBuilder(manifest);
 
+// Manejador del catálogo: entrega las películas al instante
 builder.defineCatalogHandler(async () => {
     return { metas: cachedMovies };
 });
 
+// Arranque del servidor compatible con la nube (Render)
 const PORT = process.env.PORT || 7005;
 serveHTTP(builder.getInterface(), { port: PORT });
 console.log(`🚀 Servidor ultrarrápido iniciado en el puerto ${PORT}`);
