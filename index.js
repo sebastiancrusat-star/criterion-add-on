@@ -1,7 +1,6 @@
 const { serveHTTP, addonBuilder } = require("stremio-addon-sdk");
 const fs = require("fs");
 
-// Leemos la base de datos congelada
 const rawData = fs.readFileSync("datos.json", "utf8");
 const cachedMovies = JSON.parse(rawData);
 
@@ -11,10 +10,9 @@ const manifest = {
     id: "org.criterion.pro.max",
     version: "1.0.0",
     name: "Criterion Full (RD Ready)",
-    description: "Colección Criterion completa con metadatos reales.",
-    // AHORA LE DECIMOS A STREMIO QUE TENEMOS CATÁLOGO Y METADATOS
-    resources: ["catalog", "meta"], 
-    idPrefixes: ["tmdb:"], // Le avisamos que usamos IDs de TMDB
+    description: "Colección Criterion compatible 100% con Torrentio.",
+    resources: ["catalog"], // Solo catálogo, Stremio hace el resto
+    idPrefixes: ["tt"],     // Le decimos que usamos el estándar IMDB
     types: ["movie"],
     catalogs: [
         { 
@@ -31,7 +29,6 @@ const manifest = {
 
 const builder = new addonBuilder(manifest);
 
-// 1. MANEJADOR DEL CATÁLOGO (La Vidriera)
 builder.defineCatalogHandler(async ({ extra }) => {
     let results = cachedMovies;
 
@@ -44,18 +41,6 @@ builder.defineCatalogHandler(async ({ extra }) => {
     results = results.slice(skip, skip + PAGE_SIZE);
 
     return { metas: results };
-});
-
-// 2. NUEVO: MANEJADOR DE METADATOS (La página de la película)
-builder.defineMetaHandler(async ({ type, id }) => {
-    // Buscamos la película exacta en nuestra memoria por su ID
-    const movie = cachedMovies.find(m => m.id === id);
-    
-    if (movie) {
-        return { meta: movie };
-    } else {
-        return { meta: {} };
-    }
 });
 
 const PORT = process.env.PORT || 7005;
