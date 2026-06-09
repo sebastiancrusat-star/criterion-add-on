@@ -1,9 +1,11 @@
 const { serveHTTP, addonBuilder } = require("stremio-addon-sdk");
 const fs = require("fs");
+const path = require("path"); // 👈 La brújula nueva
 
-const rawData = fs.readFileSync("datos.json", "utf8");
+// Le decimos a Render que busque el archivo EXACTAMENTE en la misma carpeta que este script
+const dataPath = path.join(__dirname, "datos.json");
+const rawData = fs.readFileSync(dataPath, "utf8");
 const cachedMovies = JSON.parse(rawData);
-
 // 🚀 NUEVO: Extraemos todos los directores únicos de tu lista para armar el menú
 const directoresSet = new Set();
 cachedMovies.forEach(m => {
