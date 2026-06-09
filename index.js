@@ -11,8 +11,8 @@ const manifest = {
     version: "1.0.0",
     name: "Criterion Full (RD Ready)",
     description: "Colección Criterion compatible 100% con Torrentio.",
-    resources: ["catalog"], // Solo catálogo, Stremio hace el resto
-    idPrefixes: ["tt"],     // Le decimos que usamos el estándar IMDB
+    resources: ["catalog"], 
+    idPrefixes: ["tt"],     
     types: ["movie"],
     catalogs: [
         { 
@@ -34,7 +34,18 @@ builder.defineCatalogHandler(async ({ extra }) => {
 
     if (extra?.search) {
         const query = extra.search.toLowerCase();
-        results = results.filter((m) => m.name.toLowerCase().includes(query));
+        
+        // 🚀 NUEVO BUSCADOR DOBLE (Título + Director)
+        results = results.filter((m) => {
+            // 1. ¿El texto coincide con el título de la peli?
+            const coincideTitulo = m.name && m.name.toLowerCase().includes(query);
+            
+            // 2. ¿El texto coincide con el nombre del director?
+            const coincideDirector = m.director && m.director.some(d => d.toLowerCase().includes(query));
+            
+            // Si coincide con alguna de las dos opciones, la mostramos en pantalla
+            return coincideTitulo || coincideDirector;
+        });
     }
 
     const skip = parseInt(extra?.skip || "0", 10);
