@@ -18,13 +18,11 @@ cachedMovies.forEach(m => {
 });
 const listaDirectores = Array.from(directoresSet).sort();
 
-const PAGE_SIZE = 100;
-
 const manifest = {
     id: "org.criterion.pro.max",
     version: "1.0.0",
-    name: "Criterion Full (RD Ready)",
-    description: "Coleccion Criterion compatible 100% con Torrentio.",
+    name: "Criterion Full",
+    description: "Coleccion Criterion en Stremio",
     resources: ["catalog"], 
     idPrefixes: ["tt"],     
     types: ["movie"],
@@ -61,11 +59,11 @@ builder.defineCatalogHandler(async ({ extra }) => {
     }
 
     const skip = parseInt((extra && extra.skip) || "0", 10);
-    results = results.slice(skip, skip + PAGE_SIZE);
+    results = results.slice(skip, skip + 100);
 
     return { metas: results };
 });
 
 const PORT = process.env.PORT || 7005;
 serveHTTP(builder.getInterface(), { port: PORT });
-console.log(`Servidor iniciado en el puerto ${PORT}`);
+console.log("Servidor iniciado en el puerto " + PORT);
