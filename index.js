@@ -24,11 +24,13 @@ cachedMovies.forEach(m => {
     }
 });
 
-// 🚀 NUEVO: Filtramos para incluir solo directores con 3 o más películas
+// 🚀 Filtramos directores con 2+ películas y agregamos tope de 250 para no pasar los 8kb
 const listaDirectores = Object.entries(directorCounts)
-    .filter(entry => entry[1] >= 3) // Condición: mínimo 3 películas
-    .map(entry => entry[0])         // Nos quedamos solo con el nombre
-    .sort();                        // Los ordenamos alfabéticamente (A-Z)
+    .filter(entry => entry[1] >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 250)
+    .map(entry => entry[0])
+    .sort();
 
 const manifest = {
     id: "org.criterion.pro.max",
