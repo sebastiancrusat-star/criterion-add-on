@@ -4,6 +4,20 @@ const fs = require("fs");
 const rawData = fs.readFileSync("datos.json", "utf8");
 const cachedMovies = JSON.parse(rawData);
 
+// 🚀 NUEVO: Extraemos todos los directores únicos de tu lista para armar el menú
+const directoresSet = new Set();
+cachedMovies.forEach(m => {
+    if (m.director && Array.isArray(m.director)) {
+        m.director.forEach(d => {
+            if (d && d.trim() !== "") {
+                directoresSet.add(d.trim());
+            }
+        });
+    }
+});
+// Los ordenamos alfabéticamente
+const listaDirectores = Array.from(directoresSet).sort();
+
 const PAGE_SIZE = 100;
 
 const manifest = {
@@ -20,8 +34,10 @@ const manifest = {
             id: "criterion_cat", 
             name: "Criterion Collection",
             extra: [
-                { name: "search" },
-                { name: "skip" }
+                { name: "search", isRequired: false },
+                { name: "skip", isRequired: false },
+                // 🚀 NUEVO: Le decimos a Stremio que cree un menú desplegable con la lista
+                { name: "genre", options: listaDirectores, isRequired: false }
             ]
         }
     ]
@@ -32,20 +48,19 @@ const builder = new addonBuilder(manifest);
 builder.defineCatalogHandler(async ({ extra }) => {
     let results = cachedMovies;
 
+    // 1. Filtro por la barra de búsqueda de arriba
     if (extra?.search) {
         const query = extra.search.toLowerCase();
-        
-        // 🚀 NUEVO BUSCADOR DOBLE (Título + Director)
         results = results.filter((m) => {
-            // 1. ¿El texto coincide con el título de la peli?
             const coincideTitulo = m.name && m.name.toLowerCase().includes(query);
-            
-            // 2. ¿El texto coincide con el nombre del director?
             const coincideDirector = m.director && m.director.some(d => d.toLowerCase().includes(query));
-            
-            // Si coincide con alguna de las dos opciones, la mostramos en pantalla
             return coincideTitulo || coincideDirector;
         });
+    }
+
+    // 2. Filtro por el nuevo menú desplegable de directores
+    if (extra?.genre) {
+        results = results.filter((m) => m.director && m.director.includes(extra.genre));
     }
 
     const skip = parseInt(extra?.skip || "0", 10);
