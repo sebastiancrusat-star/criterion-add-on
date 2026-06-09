@@ -12,7 +12,6 @@ try {
     console.error("Error leyendo datos.json: ", error.message);
 }
 
-// 🚀 NUEVO: Contamos cuántas películas tiene cada director
 const directorCounts = {};
 cachedMovies.forEach(m => {
     if (m.director && Array.isArray(m.director)) {
@@ -25,12 +24,11 @@ cachedMovies.forEach(m => {
     }
 });
 
-// Nos quedamos con los 80 directores más populares (para no pasarnos de los 8kb) y los ordenamos de la A a la Z
+// 🚀 NUEVO: Filtramos para incluir solo directores con 3 o más películas
 const listaDirectores = Object.entries(directorCounts)
-    .sort((a, b) => b[1] - a[1]) // Ordena por cantidad de películas
-    .slice(0, 80)                // Corta la lista en 80
-    .map(entry => entry[0])      // Se queda solo con el nombre
-    .sort();                     // Ordena alfabéticamente para el menú
+    .filter(entry => entry[1] >= 3) // Condición: mínimo 3 películas
+    .map(entry => entry[0])         // Nos quedamos solo con el nombre
+    .sort();                        // Los ordenamos alfabéticamente (A-Z)
 
 const manifest = {
     id: "org.criterion.pro.max",
