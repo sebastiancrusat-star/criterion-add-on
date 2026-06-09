@@ -3,8 +3,14 @@ const fs = require("fs");
 const path = require("path");
 
 const dataPath = path.join(__dirname, "datos.json");
-const rawData = fs.readFileSync(dataPath, "utf8");
-const cachedMovies = JSON.parse(rawData);
+let cachedMovies = [];
+
+try {
+    const rawData = fs.readFileSync(dataPath, "utf8");
+    cachedMovies = JSON.parse(rawData);
+} catch (error) {
+    console.error("Error leyendo datos.json: ", error.message);
+}
 
 const directoresSet = new Set();
 cachedMovies.forEach(m => {
