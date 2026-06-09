@@ -12,17 +12,25 @@ try {
     console.error("Error leyendo datos.json: ", error.message);
 }
 
-const directoresSet = new Set();
+// 🚀 NUEVO: Contamos cuántas películas tiene cada director
+const directorCounts = {};
 cachedMovies.forEach(m => {
     if (m.director && Array.isArray(m.director)) {
         m.director.forEach(d => {
             if (d && d.trim() !== "") {
-                directoresSet.add(d.trim());
+                const nombre = d.trim();
+                directorCounts[nombre] = (directorCounts[nombre] || 0) + 1;
             }
         });
     }
 });
-const listaDirectores = Array.from(directoresSet).sort();
+
+// Nos quedamos con los 80 directores más populares (para no pasarnos de los 8kb) y los ordenamos de la A a la Z
+const listaDirectores = Object.entries(directorCounts)
+    .sort((a, b) => b[1] - a[1]) // Ordena por cantidad de películas
+    .slice(0, 80)                // Corta la lista en 80
+    .map(entry => entry[0])      // Se queda solo con el nombre
+    .sort();                     // Ordena alfabéticamente para el menú
 
 const manifest = {
     id: "org.criterion.pro.max",
